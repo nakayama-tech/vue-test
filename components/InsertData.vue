@@ -17,46 +17,59 @@
       </div>
       <button type="submit">登録</button>
     </form>
-    <div v-if="responseMessage">
-      <p>{{ responseMessage }}</p>
+    <div v-if="response">
+      <h2>挿入されたデータ</h2>
+      <p>メールアドレス: {{ response.name }}</p>
+      <p>名前: {{ response.email }}</p>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref } from "vue";
-import axios from "axios";
+<script lang="ts">
+import { defineComponent, ref } from "vue";
 
-const name = ref("");
-const email = ref("");
-const passWd = ref("");
-const responseMessage = ref<string | null>(null);
-const submitForm = async () => {
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/insert",
-      {
-        email: email.value,
-        passWd: passWd.value,
-        name: name.value,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json", // JSON として送信
-        },
+export default defineComponent({
+  name: "InsertData",
+  setup() {
+    const name = ref("");
+    const email = ref("");
+    const passWd = ref("");
+    const response = ref<any | null>(null);
+
+    const submitForm = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/insert", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name.value,
+            email: email.value,
+            passWd: passWd.value,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          response.value = data; // レスポンスデータを保存
+        } else {
+          console.error("Error inserting data");
+        }
+      } catch (error) {
+        console.error("Error:", error);
       }
-    );
-    // 成功時のメッセージ
-    responseMessage.value = `ユーザー ${response.data.name} が追加されました。`;
-    // 入力フィールドのリセット
-    email.value = "";
-    passWd.value = "";
-    name.value = "";
-  } catch (error) {
-    console.error(error);
-    responseMessage.value = "データの送信に失敗しました。";
-  }
-};
+    };
+
+    return {
+      name,
+      email,
+      passWd,
+      response,
+      submitForm,
+    };
+  },
+});
 </script>
 <style scoped>
 h3 {

@@ -3,7 +3,7 @@ const { Client } = require("pg");
 const cors = require("cors");
 const app = express();
 const port = 3000;
-
+app.use(express.json()); // JSONリクエストを処理するために必要
 app.use(cors()); // CORSを有効にする
 
 const client = new Client({
